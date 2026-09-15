@@ -2,12 +2,16 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        content="width=device-width,
+        initial-scale=1.0,
+        maximum-scale=1.0,
+        user-scalable=no">
 
-    <meta name="theme-color" content="#0b0d12">
+    <meta name="theme-color" content="#080a0f">
 
-    <title>Chess Arena</title>
+    <title>Chess Arena V3</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -20,31 +24,65 @@
     <header class="topbar">
 
         <div class="brand">
-            <div class="brand-icon">♞</div>
+
+            <div class="brand-icon">
+                ♞
+            </div>
 
             <div>
                 <h1>Chess Arena</h1>
-                <span>Classic Chess</span>
+                <span>V3 • Classic Chess</span>
             </div>
+
         </div>
 
         <div class="top-actions">
-            <button id="flipBtn" class="icon-btn" title="Balik papan">
+
+            <button
+                id="flipBtn"
+                class="icon-btn">
                 ⇅
             </button>
 
-            <button id="settingsBtn" class="icon-btn" title="Pengaturan">
+            <button
+                id="settingsBtn"
+                class="icon-btn">
                 ⚙
             </button>
+
         </div>
 
     </header>
 
 
-    <!-- GAME AREA -->
+    <!-- MODE BAR -->
+
+    <div class="mode-bar">
+
+        <button
+            id="aiModeBtn"
+            class="mode-btn active">
+            <span>♟</span>
+            Computer
+        </button>
+
+        <button
+            id="twoPlayerBtn"
+            class="mode-btn">
+            <span>♙</span>
+            2 Player
+        </button>
+
+    </div>
+
+
+    <!-- GAME -->
+
     <main class="game">
 
-        <!-- BLACK PLAYER -->
+
+        <!-- BLACK -->
+
         <section class="player black-player">
 
             <div class="player-info">
@@ -54,32 +92,49 @@
                 </div>
 
                 <div>
-                    <strong>Black</strong>
-                    <span>Player 2</span>
+
+                    <strong id="blackName">
+                        Computer
+                    </strong>
+
+                    <span id="blackStatus">
+                        AI
+                    </span>
+
                 </div>
 
             </div>
 
-            <div id="blackTimer" class="timer">
+
+            <div
+                id="blackTimer"
+                class="timer">
+
                 10:00
+
             </div>
 
         </section>
 
 
         <!-- BOARD -->
+
         <section class="board-section">
 
             <div class="board-wrapper">
 
-                <div id="chessBoard" class="chess-board"></div>
+                <div
+                    id="chessBoard"
+                    class="chess-board">
+                </div>
 
             </div>
 
         </section>
 
 
-        <!-- WHITE PLAYER -->
+        <!-- WHITE -->
+
         <section class="player white-player">
 
             <div class="player-info">
@@ -89,52 +144,186 @@
                 </div>
 
                 <div>
-                    <strong>White</strong>
-                    <span>Player 1</span>
+
+                    <strong>
+                        You
+                    </strong>
+
+                    <span id="whiteStatus">
+                        White
+                    </span>
+
                 </div>
 
             </div>
 
-            <div id="whiteTimer" class="timer active">
+
+            <div
+                id="whiteTimer"
+                class="timer active">
+
                 10:00
+
             </div>
 
         </section>
 
 
         <!-- CONTROLS -->
+
         <section class="controls">
 
-            <button id="undoBtn" class="control-btn">
+            <button
+                id="undoBtn"
+                class="control-btn">
+
                 <span>↶</span>
                 <small>Undo</small>
+
             </button>
 
-            <button id="newGameBtn" class="control-btn primary">
+
+            <button
+                id="pauseBtn"
+                class="control-btn">
+
+                <span>Ⅱ</span>
+                <small>Pause</small>
+
+            </button>
+
+
+            <button
+                id="newGameBtn"
+                class="control-btn primary">
+
                 <span>＋</span>
                 <small>New Game</small>
+
             </button>
 
-            <button id="resignBtn" class="control-btn danger">
+
+            <button
+                id="resignBtn"
+                class="control-btn danger">
+
                 <span>⚑</span>
                 <small>Resign</small>
+
             </button>
 
         </section>
 
 
-        <!-- MOVE HISTORY -->
+        <!-- AI SETTINGS -->
+
+        <section
+            id="aiSettings"
+            class="options-card">
+
+            <div class="option-group">
+
+                <label>
+                    Difficulty
+                </label>
+
+                <select id="difficultySelect">
+
+                    <option value="1">
+                        Easy
+                    </option>
+
+                    <option value="2" selected>
+                        Medium
+                    </option>
+
+                    <option value="3">
+                        Hard
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="option-group">
+
+                <label>
+                    Time
+                </label>
+
+                <select id="timeSelect">
+
+                    <option value="60">
+                        1 min
+                    </option>
+
+                    <option value="180">
+                        3 min
+                    </option>
+
+                    <option value="300">
+                        5 min
+                    </option>
+
+                    <option value="600" selected>
+                        10 min
+                    </option>
+
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <!-- HISTORY -->
+
         <section class="history-card">
 
             <div class="section-title">
-                <span>Move History</span>
-                <span id="moveCount">0 moves</span>
+
+                <span>
+                    Move History
+                </span>
+
+                <span id="moveCount">
+                    0 moves
+                </span>
+
             </div>
 
-            <div id="moveHistory" class="move-history">
+
+            <div
+                id="moveHistory"
+                class="move-history">
+
                 <div class="empty-history">
                     Belum ada langkah
                 </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- STATS -->
+
+        <section class="stats-card">
+
+            <div>
+                <span>Moves</span>
+                <strong id="statMoves">0</strong>
+            </div>
+
+            <div>
+                <span>Captures</span>
+                <strong id="statCaptures">0</strong>
+            </div>
+
+            <div>
+                <span>Checks</span>
+                <strong id="statChecks">0</strong>
             </div>
 
         </section>
@@ -144,66 +333,32 @@
 </div>
 
 
-<!-- PROMOTION MODAL -->
-<div id="promotionModal" class="modal hidden">
+<!-- PAUSE -->
 
-    <div class="modal-card promotion-card">
-
-        <div class="modal-header">
-            <div>
-                <h2>Promote Pawn</h2>
-                <p>Pilih bidak yang ingin digunakan</p>
-            </div>
-        </div>
-
-        <div id="promotionOptions" class="promotion-options">
-
-            <button class="promotion-piece" data-piece="queen">
-                <span>♛</span>
-                <small>Queen</small>
-            </button>
-
-            <button class="promotion-piece" data-piece="rook">
-                <span>♜</span>
-                <small>Rook</small>
-            </button>
-
-            <button class="promotion-piece" data-piece="bishop">
-                <span>♝</span>
-                <small>Bishop</small>
-            </button>
-
-            <button class="promotion-piece" data-piece="knight">
-                <span>♞</span>
-                <small>Knight</small>
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- RESULT MODAL -->
-<div id="resultModal" class="modal hidden">
+<div
+    id="pauseModal"
+    class="modal hidden">
 
     <div class="modal-card result-card">
 
-        <div id="resultIcon" class="result-icon">
-            ♔
+        <div class="result-icon">
+            Ⅱ
         </div>
 
-        <h2 id="resultTitle">
-            Game Over
+        <h2>
+            Game Paused
         </h2>
 
-        <p id="resultMessage">
-            Permainan telah selesai.
+        <p>
+            Permainan sedang dijeda.
         </p>
 
-        <button id="resultNewGame" class="modal-button">
-            New Game
+        <button
+            id="resumeBtn"
+            class="modal-button">
+
+            Resume
+
         </button>
 
     </div>
@@ -211,20 +366,146 @@
 </div>
 
 
-<!-- SETTINGS MODAL -->
-<div id="settingsModal" class="modal hidden">
+<!-- PROMOTION -->
+
+<div
+    id="promotionModal"
+    class="modal hidden">
+
+    <div class="modal-card promotion-card">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Promote Pawn
+                </h2>
+
+                <p>
+                    Pilih bidak
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="promotionOptions"
+            class="promotion-options">
+
+            <button
+                class="promotion-piece"
+                data-piece="queen">
+
+                <span>♛</span>
+                <small>Queen</small>
+
+            </button>
+
+
+            <button
+                class="promotion-piece"
+                data-piece="rook">
+
+                <span>♜</span>
+                <small>Rook</small>
+
+            </button>
+
+
+            <button
+                class="promotion-piece"
+                data-piece="bishop">
+
+                <span>♝</span>
+                <small>Bishop</small>
+
+            </button>
+
+
+            <button
+                class="promotion-piece"
+                data-piece="knight">
+
+                <span>♞</span>
+                <small>Knight</small>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- RESULT -->
+
+<div
+    id="resultModal"
+    class="modal hidden">
+
+    <div class="modal-card result-card">
+
+        <div
+            id="resultIcon"
+            class="result-icon">
+
+            ♔
+
+        </div>
+
+        <h2 id="resultTitle">
+            Game Over
+        </h2>
+
+        <p id="resultMessage">
+            Game selesai.
+        </p>
+
+        <button
+            id="resultNewGame"
+            class="modal-button">
+
+            New Game
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- SETTINGS -->
+
+<div
+    id="settingsModal"
+    class="modal hidden">
 
     <div class="modal-card settings-card">
 
         <div class="modal-header">
 
             <div>
-                <h2>Settings</h2>
-                <p>Atur pengalaman bermain</p>
+
+                <h2>
+                    Settings
+                </h2>
+
+                <p>
+                    Pengaturan permainan
+                </p>
+
             </div>
 
-            <button id="closeSettings" class="close-btn">
+            <button
+                id="closeSettings"
+                class="close-btn">
+
                 ×
+
             </button>
 
         </div>
@@ -234,12 +515,18 @@
 
             <div>
                 <strong>Sound</strong>
-                <span>Efek suara permainan</span>
+                <span>Efek suara</span>
             </div>
 
             <label class="switch">
-                <input type="checkbox" id="soundToggle" checked>
+
+                <input
+                    type="checkbox"
+                    id="soundToggle"
+                    checked>
+
                 <span></span>
+
             </label>
 
         </div>
@@ -249,12 +536,18 @@
 
             <div>
                 <strong>Coordinates</strong>
-                <span>Tampilkan koordinat papan</span>
+                <span>Koordinat papan</span>
             </div>
 
             <label class="switch">
-                <input type="checkbox" id="coordinatesToggle" checked>
+
+                <input
+                    type="checkbox"
+                    id="coordinatesToggle"
+                    checked>
+
                 <span></span>
+
             </label>
 
         </div>
@@ -264,12 +557,18 @@
 
             <div>
                 <strong>Animations</strong>
-                <span>Animasi pergerakan bidak</span>
+                <span>Animasi bidak</span>
             </div>
 
             <label class="switch">
-                <input type="checkbox" id="animationsToggle" checked>
+
+                <input
+                    type="checkbox"
+                    id="animationsToggle"
+                    checked>
+
                 <span></span>
+
             </label>
 
         </div>
@@ -279,12 +578,18 @@
 
             <div>
                 <strong>Haptic</strong>
-                <span>Getaran saat bermain di HP</span>
+                <span>Getaran HP</span>
             </div>
 
             <label class="switch">
-                <input type="checkbox" id="hapticToggle" checked>
+
+                <input
+                    type="checkbox"
+                    id="hapticToggle"
+                    checked>
+
                 <span></span>
+
             </label>
 
         </div>
@@ -295,10 +600,17 @@
 
 
 <!-- TOAST -->
-<div id="toast" class="toast">
 
-    <div id="toastIcon" class="toast-icon">
+<div
+    id="toast"
+    class="toast">
+
+    <div
+        id="toastIcon"
+        class="toast-icon">
+
         ✓
+
     </div>
 
     <div id="toastMessage">
