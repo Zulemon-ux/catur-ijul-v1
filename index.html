@@ -2,17 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-        content="width=device-width,
-        initial-scale=1.0,
-        maximum-scale=1.0,
-        user-scalable=no">
-
-    <meta name="theme-color" content="#080a0f">
-
-    <title>Chess Arena V3</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess V3</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -20,345 +11,185 @@
 
 <div class="app">
 
-    <!-- TOP BAR -->
     <header class="topbar">
-
-        <div class="brand">
-
-            <div class="brand-icon">
-                ♞
-            </div>
-
-            <div>
-                <h1>Chess Arena</h1>
-                <span>V3 • Classic Chess</span>
-            </div>
-
+        <div>
+            <h1>♟ Chess</h1>
+            <p>Modern Chess Game</p>
         </div>
 
-        <div class="top-actions">
-
-            <button
-                id="flipBtn"
-                class="icon-btn">
-                ⇅
-            </button>
-
-            <button
-                id="settingsBtn"
-                class="icon-btn">
-                ⚙
-            </button>
-
-        </div>
-
+        <button id="settingsBtn" class="icon-btn">⚙</button>
     </header>
 
-
-    <!-- MODE BAR -->
-
     <div class="mode-bar">
-
-        <button
-            id="aiModeBtn"
-            class="mode-btn active">
-            <span>♟</span>
-            Computer
+        <button id="aiModeBtn" class="mode-btn active">
+            🤖 Computer
         </button>
 
-        <button
-            id="twoPlayerBtn"
-            class="mode-btn">
-            <span>♙</span>
-            2 Player
+        <button id="twoPlayerBtn" class="mode-btn">
+            👥 2 Player
         </button>
-
     </div>
 
+    <main class="game-layout">
 
-    <!-- GAME -->
+        <section class="game-area">
 
-    <main class="game">
+            <div class="player black-player">
+                <div class="player-info">
+                    <div class="avatar black-avatar">♟</div>
 
-
-        <!-- BLACK -->
-
-        <section class="player black-player">
-
-            <div class="player-info">
-
-                <div class="avatar black-avatar">
-                    ♟
+                    <div>
+                        <strong id="blackName">Computer</strong>
+                        <small id="blackStatus">Waiting</small>
+                    </div>
                 </div>
 
-                <div>
-
-                    <strong id="blackName">
-                        Computer
-                    </strong>
-
-                    <span id="blackStatus">
-                        AI
-                    </span>
-
+                <div id="blackTimer" class="timer">
+                    10:00
                 </div>
-
             </div>
-
-
-            <div
-                id="blackTimer"
-                class="timer">
-
-                10:00
-
-            </div>
-
-        </section>
-
-
-        <!-- BOARD -->
-
-        <section class="board-section">
 
             <div class="board-wrapper">
+                <div id="chessBoard" class="chess-board"></div>
+            </div>
 
-                <div
-                    id="chessBoard"
-                    class="chess-board">
+            <div class="player white-player">
+
+                <div class="player-info">
+                    <div class="avatar white-avatar">♙</div>
+
+                    <div>
+                        <strong>You</strong>
+                        <small id="whiteStatus">Your turn</small>
+                    </div>
                 </div>
+
+                <div id="whiteTimer" class="timer">
+                    10:00
+                </div>
+
+            </div>
+
+            <div class="controls">
+
+                <button id="undoBtn" class="control-btn">
+                    ↶
+                    <span>Undo</span>
+                </button>
+
+                <button id="pauseBtn" class="control-btn">
+                    ⏸
+                    <span>Pause</span>
+                </button>
+
+                <button id="newGameBtn" class="control-btn primary">
+                    +
+                    <span>New Game</span>
+                </button>
+
+                <button id="resignBtn" class="control-btn danger">
+                    ⚑
+                    <span>Resign</span>
+                </button>
+
+                <button id="flipBtn" class="control-btn">
+                    ↕
+                    <span>Flip</span>
+                </button>
 
             </div>
 
         </section>
 
+        <aside class="side-panel">
 
-        <!-- WHITE -->
+            <div id="aiSettings" class="panel">
 
-        <section class="player white-player">
-
-            <div class="player-info">
-
-                <div class="avatar white-avatar">
-                    ♙
-                </div>
-
-                <div>
-
-                    <strong>
-                        You
-                    </strong>
-
-                    <span id="whiteStatus">
-                        White
-                    </span>
-
-                </div>
-
-            </div>
-
-
-            <div
-                id="whiteTimer"
-                class="timer active">
-
-                10:00
-
-            </div>
-
-        </section>
-
-
-        <!-- CONTROLS -->
-
-        <section class="controls">
-
-            <button
-                id="undoBtn"
-                class="control-btn">
-
-                <span>↶</span>
-                <small>Undo</small>
-
-            </button>
-
-
-            <button
-                id="pauseBtn"
-                class="control-btn">
-
-                <span>Ⅱ</span>
-                <small>Pause</small>
-
-            </button>
-
-
-            <button
-                id="newGameBtn"
-                class="control-btn primary">
-
-                <span>＋</span>
-                <small>New Game</small>
-
-            </button>
-
-
-            <button
-                id="resignBtn"
-                class="control-btn danger">
-
-                <span>⚑</span>
-                <small>Resign</small>
-
-            </button>
-
-        </section>
-
-
-        <!-- AI SETTINGS -->
-
-        <section
-            id="aiSettings"
-            class="options-card">
-
-            <div class="option-group">
+                <h2>Computer</h2>
 
                 <label>
                     Difficulty
+
+                    <select id="difficultySelect">
+                        <option value="1">Easy</option>
+                        <option value="2" selected>Medium</option>
+                        <option value="3">Hard</option>
+                    </select>
                 </label>
-
-                <select id="difficultySelect">
-
-                    <option value="1">
-                        Easy
-                    </option>
-
-                    <option value="2" selected>
-                        Medium
-                    </option>
-
-                    <option value="3">
-                        Hard
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="option-group">
 
                 <label>
                     Time
+
+                    <select id="timeSelect">
+                        <option value="60">1 minute</option>
+                        <option value="180">3 minutes</option>
+                        <option value="300">5 minutes</option>
+                        <option value="600" selected>10 minutes</option>
+                    </select>
                 </label>
 
-                <select id="timeSelect">
+            </div>
 
-                    <option value="60">
-                        1 min
-                    </option>
+            <div class="panel">
 
-                    <option value="180">
-                        3 min
-                    </option>
+                <h2>Move History</h2>
 
-                    <option value="300">
-                        5 min
-                    </option>
+                <div class="history-header">
+                    <span>#</span>
+                    <span>White</span>
+                    <span>Black</span>
+                </div>
 
-                    <option value="600" selected>
-                        10 min
-                    </option>
-
-                </select>
+                <div id="moveHistory" class="move-history"></div>
 
             </div>
 
-        </section>
+            <div class="panel stats-panel">
 
+                <h2>Game Stats</h2>
 
-        <!-- HISTORY -->
+                <div class="stats">
 
-        <section class="history-card">
+                    <div>
+                        <strong id="statMoves">0</strong>
+                        <span>Moves</span>
+                    </div>
 
-            <div class="section-title">
+                    <div>
+                        <strong id="statCaptures">0</strong>
+                        <span>Captures</span>
+                    </div>
 
-                <span>
-                    Move History
-                </span>
+                    <div>
+                        <strong id="statChecks">0</strong>
+                        <span>Checks</span>
+                    </div>
 
-                <span id="moveCount">
-                    0 moves
-                </span>
-
-            </div>
-
-
-            <div
-                id="moveHistory"
-                class="move-history">
-
-                <div class="empty-history">
-                    Belum ada langkah
                 </div>
 
             </div>
 
-        </section>
-
-
-        <!-- STATS -->
-
-        <section class="stats-card">
-
-            <div>
-                <span>Moves</span>
-                <strong id="statMoves">0</strong>
-            </div>
-
-            <div>
-                <span>Captures</span>
-                <strong id="statCaptures">0</strong>
-            </div>
-
-            <div>
-                <span>Checks</span>
-                <strong id="statChecks">0</strong>
-            </div>
-
-        </section>
+        </aside>
 
     </main>
 
 </div>
 
 
-<!-- PAUSE -->
+<!-- PAUSE MODAL -->
 
-<div
-    id="pauseModal"
-    class="modal hidden">
+<div id="pauseModal" class="modal">
 
-    <div class="modal-card result-card">
+    <div class="modal-card">
 
-        <div class="result-icon">
-            Ⅱ
-        </div>
+        <div class="modal-icon">⏸</div>
 
-        <h2>
-            Game Paused
-        </h2>
+        <h2>Game Paused</h2>
 
-        <p>
-            Permainan sedang dijeda.
-        </p>
+        <p>Permainan sedang dijeda.</p>
 
-        <button
-            id="resumeBtn"
-            class="modal-button">
-
-            Resume
-
+        <button id="resumeBtn" class="modal-btn">
+            Resume Game
         </button>
 
     </div>
@@ -366,72 +197,32 @@
 </div>
 
 
-<!-- PROMOTION -->
+<!-- PROMOTION MODAL -->
 
-<div
-    id="promotionModal"
-    class="modal hidden">
+<div id="promotionModal" class="modal">
 
-    <div class="modal-card promotion-card">
+    <div class="modal-card">
 
-        <div class="modal-header">
+        <h2>Promote Pawn</h2>
 
-            <div>
+        <p>Pilih bidak promosi</p>
 
-                <h2>
-                    Promote Pawn
-                </h2>
+        <div id="promotionOptions" class="promotion-options">
 
-                <p>
-                    Pilih bidak
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="promotionOptions"
-            class="promotion-options">
-
-            <button
-                class="promotion-piece"
-                data-piece="queen">
-
-                <span>♛</span>
-                <small>Queen</small>
-
+            <button class="promotion-piece" data-piece="queen">
+                ♕
             </button>
 
-
-            <button
-                class="promotion-piece"
-                data-piece="rook">
-
-                <span>♜</span>
-                <small>Rook</small>
-
+            <button class="promotion-piece" data-piece="rook">
+                ♖
             </button>
 
-
-            <button
-                class="promotion-piece"
-                data-piece="bishop">
-
-                <span>♝</span>
-                <small>Bishop</small>
-
+            <button class="promotion-piece" data-piece="bishop">
+                ♗
             </button>
 
-
-            <button
-                class="promotion-piece"
-                data-piece="knight">
-
-                <span>♞</span>
-                <small>Knight</small>
-
+            <button class="promotion-piece" data-piece="knight">
+                ♘
             </button>
 
         </div>
@@ -441,20 +232,14 @@
 </div>
 
 
-<!-- RESULT -->
+<!-- RESULT MODAL -->
 
-<div
-    id="resultModal"
-    class="modal hidden">
+<div id="resultModal" class="modal">
 
     <div class="modal-card result-card">
 
-        <div
-            id="resultIcon"
-            class="result-icon">
-
-            ♔
-
+        <div id="resultIcon" class="result-icon">
+            ♛
         </div>
 
         <h2 id="resultTitle">
@@ -462,15 +247,11 @@
         </h2>
 
         <p id="resultMessage">
-            Game selesai.
+            Permainan selesai.
         </p>
 
-        <button
-            id="resultNewGame"
-            class="modal-button">
-
+        <button id="resultNewGame" class="modal-btn">
             New Game
-
         </button>
 
     </div>
@@ -478,121 +259,39 @@
 </div>
 
 
-<!-- SETTINGS -->
+<!-- SETTINGS MODAL -->
 
-<div
-    id="settingsModal"
-    class="modal hidden">
+<div id="settingsModal" class="modal">
 
     <div class="modal-card settings-card">
 
         <div class="modal-header">
+            <h2>Settings</h2>
 
-            <div>
-
-                <h2>
-                    Settings
-                </h2>
-
-                <p>
-                    Pengaturan permainan
-                </p>
-
-            </div>
-
-            <button
-                id="closeSettings"
-                class="close-btn">
-
+            <button id="closeSettings" class="close-btn">
                 ×
-
             </button>
-
         </div>
 
+        <label class="switch-row">
+            <span>Sound</span>
+            <input id="soundToggle" type="checkbox" checked>
+        </label>
 
-        <div class="setting-item">
+        <label class="switch-row">
+            <span>Coordinates</span>
+            <input id="coordinatesToggle" type="checkbox" checked>
+        </label>
 
-            <div>
-                <strong>Sound</strong>
-                <span>Efek suara</span>
-            </div>
+        <label class="switch-row">
+            <span>Animations</span>
+            <input id="animationsToggle" type="checkbox" checked>
+        </label>
 
-            <label class="switch">
-
-                <input
-                    type="checkbox"
-                    id="soundToggle"
-                    checked>
-
-                <span></span>
-
-            </label>
-
-        </div>
-
-
-        <div class="setting-item">
-
-            <div>
-                <strong>Coordinates</strong>
-                <span>Koordinat papan</span>
-            </div>
-
-            <label class="switch">
-
-                <input
-                    type="checkbox"
-                    id="coordinatesToggle"
-                    checked>
-
-                <span></span>
-
-            </label>
-
-        </div>
-
-
-        <div class="setting-item">
-
-            <div>
-                <strong>Animations</strong>
-                <span>Animasi bidak</span>
-            </div>
-
-            <label class="switch">
-
-                <input
-                    type="checkbox"
-                    id="animationsToggle"
-                    checked>
-
-                <span></span>
-
-            </label>
-
-        </div>
-
-
-        <div class="setting-item">
-
-            <div>
-                <strong>Haptic</strong>
-                <span>Getaran HP</span>
-            </div>
-
-            <label class="switch">
-
-                <input
-                    type="checkbox"
-                    id="hapticToggle"
-                    checked>
-
-                <span></span>
-
-            </label>
-
-        </div>
+        <label class="switch-row">
+            <span>Haptic</span>
+            <input id="hapticToggle" type="checkbox" checked>
+        </label>
 
     </div>
 
@@ -601,23 +300,16 @@
 
 <!-- TOAST -->
 
-<div
-    id="toast"
-    class="toast">
+<div id="toast" class="toast">
 
-    <div
-        id="toastIcon"
-        class="toast-icon">
+    <span id="toastIcon">✓</span>
 
-        ✓
-
-    </div>
-
-    <div id="toastMessage">
-        Message
-    </div>
+    <span id="toastMessage">
+        Done
+    </span>
 
 </div>
+
 
 <script src="engine.js"></script>
 <script src="script.js"></script>
