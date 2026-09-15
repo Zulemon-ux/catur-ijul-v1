@@ -2,317 +2,187 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess V3</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Catur Ijul</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="app">
+    <main id="app">
 
-    <header class="topbar">
-        <div>
-            <h1>♟ Chess</h1>
-            <p>Modern Chess Game</p>
-        </div>
+        <header class="topbar">
+            <h1>Catur Ijul</h1>
 
-        <button id="settingsBtn" class="icon-btn">⚙</button>
-    </header>
+            <button id="settingsBtn">
+                ⚙
+            </button>
+        </header>
 
-    <div class="mode-bar">
-        <button id="aiModeBtn" class="mode-btn active">
-            🤖 Computer
-        </button>
 
-        <button id="twoPlayerBtn" class="mode-btn">
-            👥 2 Player
-        </button>
-    </div>
+        <section class="game">
 
-    <main class="game-layout">
-
-        <section class="game-area">
-
-            <div class="player black-player">
-                <div class="player-info">
-                    <div class="avatar black-avatar">♟</div>
-
-                    <div>
-                        <strong id="blackName">Computer</strong>
-                        <small id="blackStatus">Waiting</small>
-                    </div>
+            <div class="player">
+                <div>
+                    <strong>White</strong>
+                    <span id="whiteStatus">
+                        Your turn
+                    </span>
                 </div>
 
-                <div id="blackTimer" class="timer">
+                <div id="whiteTimer">
                     10:00
                 </div>
             </div>
 
-            <div class="board-wrapper">
-                <div id="chessBoard" class="chess-board"></div>
-            </div>
 
-            <div class="player white-player">
+            <div id="board"></div>
 
-                <div class="player-info">
-                    <div class="avatar white-avatar">♙</div>
 
-                    <div>
-                        <strong>You</strong>
-                        <small id="whiteStatus">Your turn</small>
-                    </div>
+            <div class="player">
+                <div>
+                    <strong>Black</strong>
+                    <span id="blackStatus">
+                        Waiting
+                    </span>
                 </div>
 
-                <div id="whiteTimer" class="timer">
+                <div id="blackTimer">
                     10:00
                 </div>
-
             </div>
+
 
             <div class="controls">
 
-                <button id="undoBtn" class="control-btn">
-                    ↶
-                    <span>Undo</span>
+                <button id="undoBtn">
+                    ↶ Undo
                 </button>
 
-                <button id="pauseBtn" class="control-btn">
-                    ⏸
-                    <span>Pause</span>
+                <button id="newGameBtn">
+                    New Game
                 </button>
 
-                <button id="newGameBtn" class="control-btn primary">
-                    +
-                    <span>New Game</span>
+                <button id="resignBtn">
+                    Resign
                 </button>
 
-                <button id="resignBtn" class="control-btn danger">
-                    ⚑
-                    <span>Resign</span>
-                </button>
-
-                <button id="flipBtn" class="control-btn">
-                    ↕
-                    <span>Flip</span>
+                <button id="flipBoardBtn">
+                    ↕ Flip
                 </button>
 
             </div>
 
         </section>
 
-        <aside class="side-panel">
 
-            <div id="aiSettings" class="panel">
+        <section class="history">
 
-                <h2>Computer</h2>
+            <div class="history-header">
+                <strong>Move History</strong>
 
-                <label>
-                    Difficulty
-
-                    <select id="difficultySelect">
-                        <option value="1">Easy</option>
-                        <option value="2" selected>Medium</option>
-                        <option value="3">Hard</option>
-                    </select>
-                </label>
-
-                <label>
-                    Time
-
-                    <select id="timeSelect">
-                        <option value="60">1 minute</option>
-                        <option value="180">3 minutes</option>
-                        <option value="300">5 minutes</option>
-                        <option value="600" selected>10 minutes</option>
-                    </select>
-                </label>
-
+                <span id="moveCount">
+                    0 moves
+                </span>
             </div>
 
-            <div class="panel">
+            <div id="moveList"></div>
 
-                <h2>Move History</h2>
+            <button id="clearHistoryBtn">
+                Clear History
+            </button>
 
-                <div class="history-header">
-                    <span>#</span>
-                    <span>White</span>
-                    <span>Black</span>
-                </div>
-
-                <div id="moveHistory" class="move-history"></div>
-
-            </div>
-
-            <div class="panel stats-panel">
-
-                <h2>Game Stats</h2>
-
-                <div class="stats">
-
-                    <div>
-                        <strong id="statMoves">0</strong>
-                        <span>Moves</span>
-                    </div>
-
-                    <div>
-                        <strong id="statCaptures">0</strong>
-                        <span>Captures</span>
-                    </div>
-
-                    <div>
-                        <strong id="statChecks">0</strong>
-                        <span>Checks</span>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </aside>
+        </section>
 
     </main>
 
-</div>
 
+    <!-- SETTINGS -->
 
-<!-- PAUSE MODAL -->
+    <div
+        id="settingsModal"
+        class="modal hidden"
+    >
 
-<div id="pauseModal" class="modal">
+        <div class="modal-content">
 
-    <div class="modal-card">
-
-        <div class="modal-icon">⏸</div>
-
-        <h2>Game Paused</h2>
-
-        <p>Permainan sedang dijeda.</p>
-
-        <button id="resumeBtn" class="modal-btn">
-            Resume Game
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- PROMOTION MODAL -->
-
-<div id="promotionModal" class="modal">
-
-    <div class="modal-card">
-
-        <h2>Promote Pawn</h2>
-
-        <p>Pilih bidak promosi</p>
-
-        <div id="promotionOptions" class="promotion-options">
-
-            <button class="promotion-piece" data-piece="queen">
-                ♕
-            </button>
-
-            <button class="promotion-piece" data-piece="rook">
-                ♖
-            </button>
-
-            <button class="promotion-piece" data-piece="bishop">
-                ♗
-            </button>
-
-            <button class="promotion-piece" data-piece="knight">
-                ♘
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- RESULT MODAL -->
-
-<div id="resultModal" class="modal">
-
-    <div class="modal-card result-card">
-
-        <div id="resultIcon" class="result-icon">
-            ♛
-        </div>
-
-        <h2 id="resultTitle">
-            Game Over
-        </h2>
-
-        <p id="resultMessage">
-            Permainan selesai.
-        </p>
-
-        <button id="resultNewGame" class="modal-btn">
-            New Game
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- SETTINGS MODAL -->
-
-<div id="settingsModal" class="modal">
-
-    <div class="modal-card settings-card">
-
-        <div class="modal-header">
-            <h2>Settings</h2>
-
-            <button id="closeSettings" class="close-btn">
+            <button
+                id="closeSettingsBtn"
+                class="close-btn"
+            >
                 ×
             </button>
+
+            <h2>Settings</h2>
+
+            <label>
+                <input
+                    type="checkbox"
+                    id="soundToggle"
+                    checked
+                >
+                Sound
+            </label>
+
+            <label>
+                <input
+                    type="checkbox"
+                    id="coordinateToggle"
+                    checked
+                >
+                Coordinates
+            </label>
+
+            <label>
+                <input
+                    type="checkbox"
+                    id="animationToggle"
+                    checked
+                >
+                Animations
+            </label>
+
         </div>
-
-        <label class="switch-row">
-            <span>Sound</span>
-            <input id="soundToggle" type="checkbox" checked>
-        </label>
-
-        <label class="switch-row">
-            <span>Coordinates</span>
-            <input id="coordinatesToggle" type="checkbox" checked>
-        </label>
-
-        <label class="switch-row">
-            <span>Animations</span>
-            <input id="animationsToggle" type="checkbox" checked>
-        </label>
-
-        <label class="switch-row">
-            <span>Haptic</span>
-            <input id="hapticToggle" type="checkbox" checked>
-        </label>
 
     </div>
 
-</div>
+
+    <!-- GAME RESULT -->
+
+    <div
+        id="gameModal"
+        class="modal hidden"
+    >
+
+        <div class="modal-content result">
+
+            <div id="resultIcon">
+                ♕
+            </div>
+
+            <h2 id="resultTitle">
+                Game Over
+            </h2>
+
+            <p id="resultMessage"></p>
+
+            <button id="rematchBtn">
+                Rematch
+            </button>
+
+            <button id="closeModalBtn">
+                Close
+            </button>
+
+        </div>
+
+    </div>
 
 
-<!-- TOAST -->
-
-<div id="toast" class="toast">
-
-    <span id="toastIcon">✓</span>
-
-    <span id="toastMessage">
-        Done
-    </span>
-
-</div>
-
-
-<script src="engine.js"></script>
-<script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 </html>
