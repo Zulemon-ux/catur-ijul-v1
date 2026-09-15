@@ -1,36 +1,52 @@
 const engine = new ChessEngine();
 
 let mode = "computer";
+
 let difficulty = 2;
+
 let timeLimit = 600;
 
 let selected = null;
+
 let legalMoves = [];
 
 let gameOver = false;
+
 let paused = false;
+
 let aiThinking = false;
 
 let moveHistory = [];
+
 let capturedPieces = [];
+
 let moveNumber = 0;
+
 let checkCount = 0;
+
+let timerInterval = null;
 
 let timers = {
     white: timeLimit,
     black: timeLimit
 };
 
-let timerInterval = null;
 
-let settings = {
+const settings = {
+
     sound: true,
+
     coordinates: true,
+
     animations: true,
+
     haptic: true
+
 };
 
+
 const pieceSymbols = {
+
     white: {
         king: "♔",
         queen: "♕",
@@ -39,6 +55,7 @@ const pieceSymbols = {
         knight: "♘",
         pawn: "♙"
     },
+
     black: {
         king: "♚",
         queen: "♛",
@@ -47,266 +64,542 @@ const pieceSymbols = {
         knight: "♞",
         pawn: "♟"
     }
+
 };
 
+
 const pieceLetters = {
+
     king: "K",
     queen: "Q",
     rook: "R",
     bishop: "B",
     knight: "N",
     pawn: ""
+
 };
 
+
 const boardElement =
-    document.getElementById("chessBoard");
+    document.getElementById(
+        "chessBoard"
+    );
+
 
 function $(id) {
     return document.getElementById(id);
 }
 
+
+// =============================
+// SOUND
+// =============================
+
 function playSound(type = "move") {
-    if (!settings.sound) return;
+
+    if (!settings.sound)
+        return;
 
     try {
+
         const AudioContext =
             window.AudioContext ||
             window.webkitAudioContext;
 
-        const ctx = new AudioContext();
+        const context =
+            new AudioContext();
 
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const oscillator =
+            context.createOscillator();
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        const gain =
+            context.createGain();
 
-        if (type === "capture") {
-            osc.frequency.value = 180;
-        } else if (type === "check") {
-            osc.frequency.value = 650;
+        oscillator.connect(gain);
+
+        gain.connect(
+            context.destination
+        );
+
+
+        if (
+            type === "capture"
+        ) {
+
+            oscillator.frequency.value =
+                180;
+
+        } else if (
+            type === "check"
+        ) {
+
+            oscillator.frequency.value =
+                650;
+
         } else {
-            osc.frequency.value = 420;
+
+            oscillator.frequency.value =
+                420;
         }
+
 
         gain.gain.value = 0.05;
 
-        osc.start();
+        oscillator.start();
+
 
         setTimeout(() => {
-            osc.stop();
-            ctx.close();
+
+            oscillator.stop();
+
+            context.close();
+
         }, 100);
-    } catch (e) {}
+
+    } catch (error) {
+
+        console.log(
+            "Audio unavailable"
+        );
+    }
 }
 
+
 function vibrate(pattern = 20) {
+
     if (
         settings.haptic &&
         navigator.vibrate
     ) {
-        navigator.vibrate(pattern);
+
+        navigator.vibrate(
+            pattern
+        );
     }
 }
 
-function showToast(message, icon = "✓") {
-    const toast = $("toast");
-    const toastMessage = $("toastMessage");
-    const toastIcon = $("toastIcon");
 
-    if (!toast) return;
+// =============================
+// TOAST
+// =============================
 
-    toastMessage.textContent = message;
-    toastIcon.textContent = icon;
+function showToast(
+    message,
+    icon = "✓"
+) {
 
-    toast.classList.add("show");
+    const toast =
+        $("toast");
 
-    clearTimeout(showToast.timeout);
+    if (!toast)
+        return;
 
-    showToast.timeout = setTimeout(() => {
-        toast.classList.remove("show");
-    }, 2200);
+    $("toastMessage").textContent =
+        message;
+
+    $("toastIcon").textContent =
+        icon;
+
+    toast.classList.add(
+        "show"
+    );
+
+    clearTimeout(
+        showToast.timeout
+    );
+
+    showToast.timeout =
+        setTimeout(() => {
+
+            toast.classList.remove(
+                "show"
+            );
+
+        }, 2200);
 }
 
-function formatTime(seconds) {
-    seconds = Math.max(0, seconds);
 
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
+// =============================
+// TIMER
+// =============================
 
-    return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+function formatTime(
+    seconds
+) {
+
+    seconds =
+        Math.max(
+            0,
+            seconds
+        );
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+    const secs =
+        seconds % 60;
+
+    return (
+        String(minutes)
+            .padStart(2, "0")
+        +
+        ":" +
+        String(secs)
+            .padStart(2, "0")
+    );
 }
+
 
 function updateTimers() {
+
     $("whiteTimer").textContent =
-        formatTime(timers.white);
+        formatTime(
+            timers.white
+        );
 
     $("blackTimer").textContent =
-        formatTime(timers.black);
+        formatTime(
+            timers.black
+        );
+
 
     const whiteTimer =
-        $("whiteTimer").parentElement;
+        $("whiteTimer")
+            .parentElement;
 
     const blackTimer =
-        $("blackTimer").parentElement;
+        $("blackTimer")
+            .parentElement;
+
 
     whiteTimer?.classList.toggle(
         "active",
+
         engine.turn === "white" &&
         !paused &&
         !gameOver
     );
 
+
     blackTimer?.classList.toggle(
         "active",
+
         engine.turn === "black" &&
         !paused &&
         !gameOver
     );
 }
 
+
 function startTimer() {
-    clearInterval(timerInterval);
 
-    timerInterval = setInterval(() => {
-        if (
-            paused ||
-            gameOver
-        ) return;
+    clearInterval(
+        timerInterval
+    );
 
-        const color = engine.turn;
+    timerInterval =
+        setInterval(() => {
 
-        timers[color]--;
+            if (
+                paused ||
+                gameOver
+            ) {
+                return;
+            }
 
-        updateTimers();
+            const color =
+                engine.turn;
 
-        if (timers[color] <= 0) {
-            timers[color] = 0;
+            timers[color]--;
 
-            endGame(
-                color === "white"
-                    ? "black"
-                    : "white",
-                "Waktu habis"
-            );
-        }
-    }, 1000);
+            updateTimers();
+
+
+            if (
+                timers[color] <= 0
+            ) {
+
+                timers[color] = 0;
+
+                endGame(
+
+                    color === "white"
+                        ? "black"
+                        : "white",
+
+                    "Waktu habis"
+                );
+            }
+
+        }, 1000);
 }
+
 
 function stopTimer() {
-    clearInterval(timerInterval);
+
+    clearInterval(
+        timerInterval
+    );
 }
 
+
+// =============================
+// BOARD
+// =============================
+
 function renderBoard() {
+
     boardElement.innerHTML = "";
 
-    const board = engine.board;
+    const board =
+        engine.board;
 
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
+
+    for (
+        let r = 0;
+        r < 8;
+        r++
+    ) {
+
+        for (
+            let c = 0;
+            c < 8;
+            c++
+        ) {
+
             const square =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
+
 
             square.className =
                 "square " +
-                ((r + c) % 2 === 0
-                    ? "light"
-                    : "dark");
+                (
+                    (r + c) % 2 === 0
+                        ? "light"
+                        : "dark"
+                );
 
-            square.dataset.row = r;
-            square.dataset.col = c;
 
-            const piece = board[r][c];
+            square.dataset.row =
+                r;
 
-            if (settings.coordinates) {
+            square.dataset.col =
+                c;
+
+
+            const piece =
+                board[r][c];
+
+
+            // COORDINATES
+
+            if (
+                settings.coordinates
+            ) {
+
                 if (c === 0) {
+
                     const rank =
-                        document.createElement("span");
+                        document.createElement(
+                            "span"
+                        );
 
-                    rank.className = "rank";
-                    rank.textContent = 8 - r;
+                    rank.className =
+                        "rank";
 
-                    square.appendChild(rank);
+                    rank.textContent =
+                        8 - r;
+
+                    square.appendChild(
+                        rank
+                    );
                 }
+
 
                 if (r === 7) {
+
                     const file =
-                        document.createElement("span");
+                        document.createElement(
+                            "span"
+                        );
 
-                    file.className = "file";
+                    file.className =
+                        "file";
+
                     file.textContent =
-                        String.fromCharCode(97 + c);
+                        String.fromCharCode(
+                            97 + c
+                        );
 
-                    square.appendChild(file);
+                    square.appendChild(
+                        file
+                    );
                 }
             }
+
+
+            // SELECTED
 
             if (
                 selected &&
                 selected.r === r &&
                 selected.c === c
             ) {
-                square.classList.add("selected");
+
+                square.classList.add(
+                    "selected"
+                );
             }
 
-            const legal = legalMoves.find(
-                move =>
-                    move.to.r === r &&
-                    move.to.c === c
-            );
+
+            // LEGAL MOVE
+
+            const legal =
+                legalMoves.find(
+                    move =>
+                        move.to.r === r &&
+                        move.to.c === c
+                );
+
 
             if (legal) {
+
                 square.classList.add(
-                    legal.captured || legal.enPassant
+
+                    legal.captured ||
+                    legal.enPassant
+
                         ? "capture-target"
+
                         : "legal-target"
                 );
             }
 
+
+            // PIECE
+
             if (piece) {
+
                 const pieceElement =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
 
                 pieceElement.className =
-                    "piece " + piece.color;
+                    "piece " +
+                    piece.color;
 
                 pieceElement.textContent =
-                    pieceSymbols[piece.color][
+                    pieceSymbols[
+                        piece.color
+                    ][
                         piece.type
                     ];
 
-                square.appendChild(pieceElement);
+
+                pieceElement.draggable =
+                    true;
+
+
+                pieceElement.addEventListener(
+                    "dragstart",
+                    event => {
+
+                        if (
+                            gameOver ||
+                            paused ||
+                            aiThinking
+                        ) {
+
+                            event.preventDefault();
+
+                            return;
+                        }
+
+
+                        if (
+                            mode === "computer" &&
+                            engine.turn !== "white"
+                        ) {
+
+                            event.preventDefault();
+
+                            return;
+                        }
+
+
+                        selected = {
+                            r,
+                            c
+                        };
+
+
+                        legalMoves =
+                            engine.getMovesForSquare(
+                                r,
+                                c
+                            );
+
+
+                        event.dataTransfer.setData(
+                            "text/plain",
+                            `${r},${c}`
+                        );
+
+
+                        renderBoard();
+                    }
+                );
+
+
+                square.appendChild(
+                    pieceElement
+                );
             }
+
+
+            // CLICK
 
             square.addEventListener(
                 "click",
-                () => handleSquareClick(r, c)
-            );
+                () => {
 
-            square.addEventListener(
-                "pointerdown",
-                event => {
-                    if (piece) {
-                        event.preventDefault();
-                    }
+                    handleSquareClick(
+                        r,
+                        c
+                    );
+
                 }
             );
+
+
+            // DROP
 
             square.addEventListener(
                 "dragover",
                 event => {
+
                     event.preventDefault();
+
                 }
             );
+
 
             square.addEventListener(
                 "drop",
                 event => {
+
                     event.preventDefault();
 
-                    if (!selected) return;
+                    if (!selected)
+                        return;
 
                     tryMove(
+
                         selected.r,
                         selected.c,
                         r,
@@ -315,77 +608,61 @@ function renderBoard() {
                 }
             );
 
-            if (piece) {
-                const pieceElement =
-                    square.querySelector(".piece");
 
-                pieceElement.draggable = true;
-
-                pieceElement.addEventListener(
-                    "dragstart",
-                    event => {
-                        if (
-                            gameOver ||
-                            paused ||
-                            aiThinking
-                        ) {
-                            event.preventDefault();
-                            return;
-                        }
-
-                        if (
-                            mode === "computer" &&
-                            engine.turn !== "white"
-                        ) {
-                            event.preventDefault();
-                            return;
-                        }
-
-                        selected = { r, c };
-
-                        legalMoves =
-                            engine.getMovesForSquare(
-                                r,
-                                c
-                            );
-
-                        renderBoard();
-
-                        event.dataTransfer.setData(
-                            "text/plain",
-                            `${r},${c}`
-                        );
-                    }
-                );
-            }
-
-            boardElement.appendChild(square);
+            boardElement.appendChild(
+                square
+            );
         }
     }
+
 
     updatePlayerStatus();
 }
 
-function handleSquareClick(r, c) {
+
+// =============================
+// CLICK MOVE
+// =============================
+
+function handleSquareClick(
+    r,
+    c
+) {
+
     if (
         gameOver ||
         paused ||
         aiThinking
-    ) return;
+    ) {
+        return;
+    }
+
 
     if (
         mode === "computer" &&
         engine.turn !== "white"
-    ) return;
+    ) {
+        return;
+    }
 
-    const piece = engine.board[r][c];
+
+    const piece =
+        engine.board[r][c];
+
+
+    // SELECT PIECE
 
     if (!selected) {
+
         if (
             piece &&
             piece.color === engine.turn
         ) {
-            selected = { r, c };
+
+            selected = {
+                r,
+                c
+            };
 
             legalMoves =
                 engine.getMovesForSquare(
@@ -399,6 +676,9 @@ function handleSquareClick(r, c) {
         return;
     }
 
+
+    // TRY MOVE
+
     const targetMove =
         legalMoves.find(
             move =>
@@ -406,7 +686,9 @@ function handleSquareClick(r, c) {
                 move.to.c === c
         );
 
+
     if (targetMove) {
+
         tryMove(
             selected.r,
             selected.c,
@@ -417,11 +699,18 @@ function handleSquareClick(r, c) {
         return;
     }
 
+
+    // SELECT ANOTHER PIECE
+
     if (
         piece &&
         piece.color === engine.turn
     ) {
-        selected = { r, c };
+
+        selected = {
+            r,
+            c
+        };
 
         legalMoves =
             engine.getMovesForSquare(
@@ -434,24 +723,41 @@ function handleSquareClick(r, c) {
         return;
     }
 
+
     selected = null;
+
     legalMoves = [];
 
     renderBoard();
 }
 
-function tryMove(fromR, fromC, toR, toC) {
+
+// =============================
+// TRY MOVE
+// =============================
+
+function tryMove(
+    fromR,
+    fromC,
+    toR,
+    toC
+) {
+
     if (
         gameOver ||
         paused ||
         aiThinking
-    ) return;
+    ) {
+        return;
+    }
+
 
     const moves =
         engine.getMovesForSquare(
             fromR,
             fromC
         );
+
 
     const move =
         moves.find(
@@ -460,40 +766,87 @@ function tryMove(fromR, fromC, toR, toC) {
                 m.to.c === toC
         );
 
-    if (!move) return;
+
+    if (!move)
+        return;
+
+
+    // PROMOTION
 
     if (
         move.piece.type === "pawn" &&
-        (move.to.r === 0 ||
-            move.to.r === 7)
+        (
+            move.to.r === 0 ||
+            move.to.r === 7
+        )
     ) {
-        openPromotion(move);
+
+        openPromotion(
+            move
+        );
+
         return;
     }
 
-    executeMove(move, "queen");
+
+    executeMove(
+        move,
+        "queen"
+    );
 }
 
-function executeMove(move, promotion = "queen") {
+
+// =============================
+// EXECUTE MOVE
+// =============================
+
+function executeMove(
+    move,
+    promotion = "queen"
+) {
+
     const snapshot = {
-        board: engine.cloneBoard(engine.board),
-        turn: engine.turn,
+
+        board:
+            engine.cloneBoard(
+                engine.board
+            ),
+
+        turn:
+            engine.turn,
+
         castling: {
             ...engine.castling
         },
-        enPassant: engine.enPassant
-            ? { ...engine.enPassant }
-            : null,
+
+        enPassant:
+            engine.enPassant
+                ? {
+                    ...engine.enPassant
+                }
+                : null,
+
         timers: {
             ...timers
         },
-        moveHistory: [...moveHistory],
-        capturedPieces: [...capturedPieces],
+
+        moveHistory: [
+            ...moveHistory
+        ],
+
+        capturedPieces: [
+            ...capturedPieces
+        ],
+
         moveNumber,
+
         checkCount
     };
 
-    move._snapshot = snapshot;
+
+    move._snapshot =
+        snapshot;
+
 
     const result =
         engine.move(
@@ -501,274 +854,504 @@ function executeMove(move, promotion = "queen") {
             promotion
         );
 
+
     moveHistory.push({
+
         ...result,
-        notation: createNotation(
-            result
-        )
+
+        notation:
+            createNotation(
+                result
+            ),
+
+        _snapshot:
+            snapshot
     });
 
-    if (result.captured) {
+
+    if (
+        result.captured
+    ) {
+
         capturedPieces.push(
             result.captured
         );
 
-        playSound("capture");
-        vibrate([15, 30, 15]);
+        playSound(
+            "capture"
+        );
+
+        vibrate([
+            15,
+            30,
+            15
+        ]);
+
     } else {
-        playSound("move");
+
+        playSound(
+            "move"
+        );
+
         vibrate(15);
     }
 
+
     moveNumber++;
 
+
     selected = null;
+
     legalMoves = [];
+
 
     const state =
         engine.getGameState();
 
-    if (state === "check") {
+
+    if (
+        state === "check"
+    ) {
+
         checkCount++;
-        playSound("check");
+
+        playSound(
+            "check"
+        );
+
         showToast(
-            `${engine.turn === "white" ? "Putih" : "Hitam"} sedang skak!`,
+            `${
+                engine.turn === "white"
+                    ? "Putih"
+                    : "Hitam"
+            } sedang skak!`,
             "!"
         );
     }
 
+
     updateStats();
+
     updateHistory();
+
     renderBoard();
+
     updateTimers();
+
+
+    // CHECKMATE
 
     if (
         state === "checkmate"
     ) {
+
         endGame(
-            engine.opposite(engine.turn),
+
+            engine.opposite(
+                engine.turn
+            ),
+
             "Skakmat"
         );
+
         return;
     }
+
+
+    // STALEMATE
 
     if (
         state === "stalemate"
     ) {
+
         endGame(
             null,
             "Remis — stalemate"
         );
+
         return;
     }
+
+
+    // AI TURN
 
     if (
         mode === "computer" &&
         engine.turn === "black"
     ) {
+
         makeAIMove();
     }
 }
 
-function createNotation(result) {
-    const move = result.move;
-    const piece = result.piece;
 
-    if (move.castle === "king") {
+// =============================
+// NOTATION
+// =============================
+
+function createNotation(
+    result
+) {
+
+    const move =
+        result.move;
+
+    const piece =
+        result.piece;
+
+
+    if (
+        move.castle === "king"
+    ) {
         return "O-O";
     }
 
-    if (move.castle === "queen") {
+
+    if (
+        move.castle === "queen"
+    ) {
         return "O-O-O";
     }
+
 
     const file =
         String.fromCharCode(
             97 + move.from.c
         );
 
+
     const targetFile =
         String.fromCharCode(
             97 + move.to.c
         );
 
+
     const targetSquare =
-        `${targetFile}${8 - move.to.r}`;
+        targetFile +
+        (8 - move.to.r);
+
 
     let notation =
-        pieceLetters[piece.type];
+        pieceLetters[
+            piece.type
+        ];
+
 
     if (
         piece.type === "pawn" &&
         result.captured
     ) {
+
         notation += file;
     }
 
-    if (result.captured) {
+
+    if (
+        result.captured
+    ) {
+
         notation += "x";
     }
 
-    notation += targetSquare;
+
+    notation +=
+        targetSquare;
+
+
+    if (
+        result.promotion
+    ) {
+
+        if (
+            piece.type === "pawn" &&
+            (
+                move.to.r === 0 ||
+                move.to.r === 7
+            )
+        ) {
+
+            notation +=
+                "=" +
+                pieceLetters[
+                    result.promotion
+                ];
+        }
+    }
+
 
     return notation;
 }
 
-function openPromotion(move) {
+
+// =============================
+// PROMOTION
+// =============================
+
+function openPromotion(
+    move
+) {
+
     const modal =
         $("promotionModal");
 
+
     if (!modal) {
-        executeMove(move, "queen");
+
+        executeMove(
+            move,
+            "queen"
+        );
+
         return;
     }
 
-    modal.classList.add("show");
+
+    modal.classList.add(
+        "show"
+    );
+
 
     const options =
         modal.querySelectorAll(
             ".promotion-piece"
         );
 
-    options.forEach(option => {
-        option.onclick = () => {
-            const type =
-                option.dataset.piece ||
-                option.dataset.type ||
-                "queen";
 
-            modal.classList.remove("show");
+    options.forEach(
+        option => {
 
-            executeMove(
-                move,
-                type
-            );
-        };
-    });
+            option.onclick = () => {
+
+                const type =
+                    option.dataset.piece ||
+                    "queen";
+
+
+                modal.classList.remove(
+                    "show"
+                );
+
+
+                executeMove(
+                    move,
+                    type
+                );
+            };
+        }
+    );
 }
 
+
+// =============================
+// AI
+// =============================
+
 function makeAIMove() {
+
     if (
         gameOver ||
         paused ||
         mode !== "computer" ||
         engine.turn !== "black"
-    ) return;
+    ) {
+        return;
+    }
+
 
     aiThinking = true;
 
     updatePlayerStatus();
+
 
     showToast(
         "Computer sedang berpikir...",
         "♟"
     );
 
+
+    const delay =
+        difficulty === 3
+            ? 550
+            : 300;
+
+
     setTimeout(() => {
+
         if (
             gameOver ||
             paused ||
             engine.turn !== "black"
         ) {
+
             aiThinking = false;
+
             return;
         }
+
 
         const move =
             engine.getBestMove(
                 difficulty
             );
 
+
         aiThinking = false;
 
+
         if (move) {
+
             executeMove(
                 move,
                 "queen"
             );
         }
-    }, difficulty === 3 ? 500 : 300);
+
+    }, delay);
 }
 
+
+// =============================
+// HISTORY
+// =============================
+
 function updateHistory() {
+
     const container =
         $("moveHistory");
 
-    if (!container) return;
+
+    if (!container)
+        return;
+
 
     container.innerHTML = "";
+
 
     for (
         let i = 0;
         i < moveHistory.length;
         i++
     ) {
+
         const move =
             moveHistory[i];
 
+
         const row =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         row.className =
             "history-row";
 
+
         row.innerHTML = `
-            <span>${i + 1}</span>
-            <span>${move.piece.color === "white"
-                ? move.notation
-                : ""}</span>
-            <span>${move.piece.color === "black"
-                ? move.notation
-                : ""}</span>
+
+            <span>
+                ${Math.floor(i / 2) + 1}
+            </span>
+
+            <span>
+                ${
+                    move.piece.color === "white"
+                        ? move.notation
+                        : ""
+                }
+            </span>
+
+            <span>
+                ${
+                    move.piece.color === "black"
+                        ? move.notation
+                        : ""
+                }
+            </span>
+
         `;
 
-        container.appendChild(row);
+
+        container.appendChild(
+            row
+        );
     }
+
 
     container.scrollTop =
         container.scrollHeight;
 }
 
+
+// =============================
+// STATS
+// =============================
+
 function updateStats() {
-    if ($("statMoves"))
+
+    if (
+        $("statMoves")
+    ) {
+
         $("statMoves").textContent =
             moveNumber;
+    }
 
-    if ($("statCaptures"))
+
+    if (
+        $("statCaptures")
+    ) {
+
         $("statCaptures").textContent =
             capturedPieces.length;
+    }
 
-    if ($("statChecks"))
+
+    if (
+        $("statChecks")
+    ) {
+
         $("statChecks").textContent =
             checkCount;
+    }
 }
 
-function updatePlayerStatus() {
-    const blackName =
-        $("blackName");
 
-    if (blackName) {
-        blackName.textContent =
+// =============================
+// PLAYER STATUS
+// =============================
+
+function updatePlayerStatus() {
+
+    if (
+        $("blackName")
+    ) {
+
+        $("blackName").textContent =
             mode === "computer"
                 ? "Computer"
                 : "Player 2";
     }
 
-    const blackStatus =
-        $("blackStatus");
 
-    const whiteStatus =
-        $("whiteStatus");
+    if (
+        $("whiteStatus")
+    ) {
 
-    if (whiteStatus) {
-        whiteStatus.textContent =
+        $("whiteStatus").textContent =
+
             engine.turn === "white"
                 ? "Your turn"
                 : "Waiting";
     }
 
-    if (blackStatus) {
-        blackStatus.textContent =
+
+    if (
+        $("blackStatus")
+    ) {
+
+        $("blackStatus").textContent =
+
             aiThinking
                 ? "Thinking..."
                 : engine.turn === "black"
@@ -777,22 +1360,24 @@ function updatePlayerStatus() {
     }
 }
 
+
+// =============================
+// MODE
+// =============================
+
 function updateModeButtons() {
-    const aiBtn =
-        $("aiModeBtn");
 
-    const twoBtn =
-        $("twoPlayerBtn");
-
-    aiBtn?.classList.toggle(
+    $("aiModeBtn")?.classList.toggle(
         "active",
         mode === "computer"
     );
 
-    twoBtn?.classList.toggle(
+
+    $("twoPlayerBtn")?.classList.toggle(
         "active",
         mode === "twoPlayer"
     );
+
 
     $("aiSettings")?.classList.toggle(
         "hidden",
@@ -800,43 +1385,75 @@ function updateModeButtons() {
     );
 }
 
+
+// =============================
+// NEW GAME
+// =============================
+
 function newGame() {
+
     engine.reset();
 
+
     selected = null;
+
     legalMoves = [];
 
+
     gameOver = false;
+
     paused = false;
+
     aiThinking = false;
 
+
     moveHistory = [];
+
     capturedPieces = [];
 
+
     moveNumber = 0;
+
     checkCount = 0;
 
+
     timers = {
-        white: timeLimit,
-        black: timeLimit
+
+        white:
+            timeLimit,
+
+        black:
+            timeLimit
     };
 
+
     stopTimer();
+
     startTimer();
 
-    $("pauseModal")?.classList.remove(
-        "show"
-    );
 
-    $("resultModal")?.classList.remove(
-        "show"
-    );
+    $("pauseModal")
+        ?.classList.remove(
+            "show"
+        );
+
+
+    $("resultModal")
+        ?.classList.remove(
+            "show"
+        );
+
 
     updateModeButtons();
+
     updateStats();
+
     updateHistory();
+
     updateTimers();
+
     renderBoard();
+
 
     showToast(
         "Game baru dimulai",
@@ -844,12 +1461,24 @@ function newGame() {
     );
 }
 
+
+// =============================
+// UNDO
+// =============================
+
 function undoMove() {
+
     if (
         gameOver ||
         aiThinking ||
         !moveHistory.length
-    ) return;
+    ) {
+        return;
+    }
+
+
+    // Computer mode:
+    // undo player + AI move
 
     const count =
         mode === "computer"
@@ -859,62 +1488,86 @@ function undoMove() {
             )
             : 1;
 
-    let snapshot = null;
 
-    for (let i = 0; i < count; i++) {
-        const index =
-            moveHistory.length - 1 - i;
+    const index =
+        moveHistory.length -
+        count;
 
-        if (
-            moveHistory[index]?._snapshot
-        ) {
-            snapshot =
-                moveHistory[index]._snapshot;
-        }
-    }
 
-    if (!snapshot) return;
+    const snapshot =
+        moveHistory[
+            index
+        ]?._snapshot;
+
+
+    if (!snapshot)
+        return;
+
 
     engine.board =
         engine.cloneBoard(
             snapshot.board
         );
 
+
     engine.turn =
         snapshot.turn;
+
 
     engine.castling = {
         ...snapshot.castling
     };
 
+
     engine.enPassant =
         snapshot.enPassant
-            ? { ...snapshot.enPassant }
+            ? {
+                ...snapshot.enPassant
+            }
             : null;
+
 
     timers = {
         ...snapshot.timers
     };
 
+
     moveHistory =
-        [...snapshot.moveHistory];
+        moveHistory.slice(
+            0,
+            index
+        );
+
 
     capturedPieces =
-        [...snapshot.capturedPieces];
+        snapshot.capturedPieces
+            ? [
+                ...snapshot.capturedPieces
+            ]
+            : [];
+
 
     moveNumber =
         snapshot.moveNumber;
 
+
     checkCount =
         snapshot.checkCount;
 
+
     selected = null;
+
     legalMoves = [];
 
+
     renderBoard();
+
     updateHistory();
+
     updateStats();
+
     updateTimers();
+
 
     showToast(
         "Langkah dibatalkan",
@@ -922,19 +1575,41 @@ function undoMove() {
     );
 }
 
+
+// =============================
+// RESIGN
+// =============================
+
 function resignGame() {
-    if (gameOver) return;
+
+    if (gameOver)
+        return;
+
 
     endGame(
-        engine.opposite(engine.turn),
+
+        engine.opposite(
+            engine.turn
+        ),
+
         "Menyerah"
     );
 }
 
-function endGame(winner, reason) {
+
+// =============================
+// GAME OVER
+// =============================
+
+function endGame(
+    winner,
+    reason
+) {
+
     gameOver = true;
 
     stopTimer();
+
 
     const title =
         $("resultTitle");
@@ -945,98 +1620,150 @@ function endGame(winner, reason) {
     const icon =
         $("resultIcon");
 
-    if (winner === null) {
+
+    if (
+        winner === null
+    ) {
+
         if (title)
-            title.textContent = "Draw";
+            title.textContent =
+                "Draw";
+
 
         if (message)
-            message.textContent = reason;
+            message.textContent =
+                reason;
+
 
         if (icon)
-            icon.textContent = "½";
+            icon.textContent =
+                "½";
+
     } else {
+
         const winnerName =
+
             winner === "white"
                 ? "Putih"
                 : mode === "computer"
                     ? "Computer"
                     : "Hitam";
 
+
         if (title)
             title.textContent =
                 `${winnerName} Menang`;
+
 
         if (message)
             message.textContent =
                 reason;
 
+
         if (icon)
-            icon.textContent = "♛";
+            icon.textContent =
+                "♛";
     }
 
+
     setTimeout(() => {
-        $("resultModal")?.classList.add(
-            "show"
-        );
+
+        $("resultModal")
+            ?.classList.add(
+                "show"
+            );
+
     }, 400);
 }
 
+
+// =============================
+// PAUSE
+// =============================
+
 function togglePause() {
-    if (gameOver) return;
+
+    if (gameOver)
+        return;
+
 
     paused = !paused;
 
-    $("pauseModal")?.classList.toggle(
-        "show",
-        paused
-    );
+
+    $("pauseModal")
+        ?.classList.toggle(
+            "show",
+            paused
+        );
+
 
     updateTimers();
+
     updatePlayerStatus();
 }
 
+
+// =============================
+// FLIP
+// =============================
+
 function flipBoard() {
+
     boardElement.classList.toggle(
         "flipped"
     );
 }
 
+
+// =============================
+// SETTINGS
+// =============================
+
 function setupSettings() {
-    const settingsBtn =
-        $("settingsBtn");
 
-    settingsBtn?.addEventListener(
-        "click",
-        () => {
-            $("settingsModal")?.classList.add(
-                "show"
-            );
-        }
-    );
+    $("settingsBtn")
+        ?.addEventListener(
+            "click",
+            () => {
 
-    $("closeSettings")?.addEventListener(
-        "click",
-        () => {
-            $("settingsModal")?.classList.remove(
-                "show"
-            );
-        }
-    );
+                $("settingsModal")
+                    ?.classList.add(
+                        "show"
+                    );
+            }
+        );
+
+
+    $("closeSettings")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                $("settingsModal")
+                    ?.classList.remove(
+                        "show"
+                    );
+            }
+        );
+
 
     setupToggle(
         "soundToggle",
         "sound"
     );
 
+
     setupToggle(
         "coordinatesToggle",
         "coordinates"
     );
 
+
     setupToggle(
         "animationsToggle",
         "animations"
     );
+
 
     setupToggle(
         "hapticToggle",
@@ -1044,118 +1771,196 @@ function setupSettings() {
     );
 }
 
-function setupToggle(id, setting) {
-    const element = $(id);
 
-    if (!element) return;
+function setupToggle(
+    id,
+    setting
+) {
+
+    const element =
+        $(id);
+
+
+    if (!element)
+        return;
+
 
     element.checked =
         settings[setting];
 
+
     element.addEventListener(
         "change",
         () => {
+
             settings[setting] =
                 element.checked;
 
-            if (setting === "coordinates") {
+
+            if (
+                setting ===
+                "coordinates"
+            ) {
+
                 renderBoard();
             }
         }
     );
 }
 
+
+// =============================
+// CONTROLS
+// =============================
+
 function setupControls() {
-    $("newGameBtn")?.addEventListener(
-        "click",
-        newGame
-    );
 
-    $("resultNewGame")?.addEventListener(
-        "click",
-        () => {
-            $("resultModal")?.classList.remove(
-                "show"
-            );
+    $("newGameBtn")
+        ?.addEventListener(
+            "click",
+            newGame
+        );
 
-            newGame();
-        }
-    );
 
-    $("undoBtn")?.addEventListener(
-        "click",
-        undoMove
-    );
+    $("resultNewGame")
+        ?.addEventListener(
+            "click",
+            () => {
 
-    $("resignBtn")?.addEventListener(
-        "click",
-        resignGame
-    );
+                $("resultModal")
+                    ?.classList.remove(
+                        "show"
+                    );
 
-    $("pauseBtn")?.addEventListener(
-        "click",
-        togglePause
-    );
+                newGame();
+            }
+        );
 
-    $("resumeBtn")?.addEventListener(
-        "click",
-        togglePause
-    );
 
-    $("flipBtn")?.addEventListener(
-        "click",
-        flipBoard
-    );
+    $("undoBtn")
+        ?.addEventListener(
+            "click",
+            undoMove
+        );
 
-    $("aiModeBtn")?.addEventListener(
-        "click",
-        () => {
-            mode = "computer";
 
-            updateModeButtons();
-            newGame();
-        }
-    );
+    $("resignBtn")
+        ?.addEventListener(
+            "click",
+            resignGame
+        );
 
-    $("twoPlayerBtn")?.addEventListener(
-        "click",
-        () => {
-            mode = "twoPlayer";
 
-            updateModeButtons();
-            newGame();
-        }
-    );
+    $("pauseBtn")
+        ?.addEventListener(
+            "click",
+            togglePause
+        );
 
-    $("difficultySelect")?.addEventListener(
-        "change",
-        event => {
-            difficulty =
-                Number(event.target.value);
-        }
-    );
 
-    $("timeSelect")?.addEventListener(
-        "change",
-        event => {
-            timeLimit =
-                Number(event.target.value);
+    $("resumeBtn")
+        ?.addEventListener(
+            "click",
+            togglePause
+        );
 
-            newGame();
-        }
-    );
+
+    $("flipBtn")
+        ?.addEventListener(
+            "click",
+            flipBoard
+        );
+
+
+    // COMPUTER MODE
+
+    $("aiModeBtn")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                mode =
+                    "computer";
+
+                updateModeButtons();
+
+                newGame();
+            }
+        );
+
+
+    // 2 PLAYER MODE
+
+    $("twoPlayerBtn")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                mode =
+                    "twoPlayer";
+
+                updateModeButtons();
+
+                newGame();
+            }
+        );
+
+
+    // DIFFICULTY
+
+    $("difficultySelect")
+        ?.addEventListener(
+            "change",
+            event => {
+
+                difficulty =
+                    Number(
+                        event.target.value
+                    );
+            }
+        );
+
+
+    // TIME
+
+    $("timeSelect")
+        ?.addEventListener(
+            "change",
+            event => {
+
+                timeLimit =
+                    Number(
+                        event.target.value
+                    );
+
+                newGame();
+            }
+        );
 }
 
+
+// =============================
+// START
+// =============================
+
 function startGame() {
+
     setupControls();
+
     setupSettings();
 
     updateModeButtons();
+
     updateStats();
+
     updateHistory();
+
     updateTimers();
+
     renderBoard();
+
     startTimer();
 }
+
 
 startGame();
